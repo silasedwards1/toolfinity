@@ -1,5 +1,13 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import {
+  PhotoIcon,
+  VideoCameraIcon,
+  DocumentTextIcon,
+  MusicalNoteIcon,
+  CodeBracketIcon,
+  WrenchScrewdriverIcon,
+} from '@heroicons/react/24/outline';
 
 export type ToolStatus = 'unstarted' | 'unfinished' | 'ready';
 
@@ -34,12 +42,31 @@ function renderStatusBadge(status?: ToolStatus) {
 }
 
 export default function ToolCard({ tool }: { tool: Tool }) {
+  function getCategoryIcon(category: Tool['category']) {
+    const common = 'h-4 w-4';
+    switch (category) {
+      case 'Image':
+        return <PhotoIcon className={common} aria-hidden="true" />;
+      case 'Video':
+        return <VideoCameraIcon className={common} aria-hidden="true" />;
+      case 'Text':
+        return <DocumentTextIcon className={common} aria-hidden="true" />;
+      case 'Music':
+        return <MusicalNoteIcon className={common} aria-hidden="true" />;
+      case 'Code':
+        return <CodeBracketIcon className={common} aria-hidden="true" />;
+      case 'Utility':
+      default:
+        return <WrenchScrewdriverIcon className={common} aria-hidden="true" />;
+    }
+  }
+
   return (
     <div className="group rounded-2xl border bg-card p-5 hover:shadow-sm transition-shadow">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center" aria-hidden>
-            {tool.icon ?? <span className="text-xs">{tool.category}</span>}
+            {tool.icon ?? getCategoryIcon(tool.category)}
           </div>
           <div>
             <h3 className="font-semibold">{tool.name}</h3>

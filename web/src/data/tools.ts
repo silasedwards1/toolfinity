@@ -20,10 +20,18 @@ export const featuredTools: Tool[] = [
   {
     id: 'text-paraphraser',
     name: 'Text Paraphraser',
-    description: 'Rewrite sentences and paragraphs in your style.',
+    description: 'Rewrite your sentences and paragraphs in your style.',
     href: '/tools/text-paraphraser',
     category: 'Text',
-    status: 'unfinished',
+    status: 'ready',
+  },
+  {
+    id: 'email-tone-checker',
+    name: 'Email Tone Checker',
+    description: 'Analyze email tone and get suggestions to improve clarity and professionalism.',
+    href: '/tools/email-tone-checker',
+    category: 'Text',
+    status: 'ready',
   },
   {
     id: 'code-explainer',
