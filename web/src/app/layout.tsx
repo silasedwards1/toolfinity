@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: "Toolfinity — Free AI Tools for Everyone",
   description:
     "Discover and use the best free AI tools for images, video, text, code, and productivity. No sign up required for most tools.",
-  icons: { icon: "/favicon.ico" },
+  icons: { icon: "/toolfinity_logo.png" },
 };
 
 export default function RootLayout({
