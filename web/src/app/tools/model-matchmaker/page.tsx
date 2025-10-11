@@ -67,14 +67,12 @@ export default function ModelMatchmakerPage() {
                   <h2 className="text-lg font-semibold">{result.modelName}</h2>
                   <div className="text-xs text-foreground/60 font-mono">{result.modelId}</div>
                 </div>
-                <a
-                  href={`https://openrouter.ai/${encodeURIComponent(result.modelId)}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() => navigator.clipboard.writeText(result.modelId).catch(() => {})}
                   className="inline-flex h-9 items-center rounded-full border px-4 text-sm font-medium hover:bg-muted"
                 >
-                  View on OpenRouter
-                </a>
+                  Copy model id
+                </button>
               </div>
               <p className="mt-3 text-sm text-foreground/80">{result.summary}</p>
             </div>

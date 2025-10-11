@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { Infinity as InfinityIcon } from 'lucide-react';
 
 export default function Hero() {
   return (
@@ -16,14 +17,18 @@ export default function Hero() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
+        {/* Infinity icon visual */}
+        <div className="mx-auto mb-2 md:mb-3 flex items-center justify-center">
+          <InfinityIcon className="w-40 h-40 md:w-56 md:h-56 text-cyan-400 animate-pulse drop-shadow" />
+        </div>
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-          Discover the World’s Best <span className="gradient-text">Free AI Tools</span>
+          Smart, <span className="gradient-text">free AI tools</span> — built for creators, students, and professionals.
         </h1>
         <p className="mt-4 md:mt-6 text-base md:text-lg text-foreground/80 max-w-2xl mx-auto">
           Instant access. Zero payment. Creative power. Explore diverse AI utilities for creators, students, and professionals.
         </p>
         <div className="mt-8 flex items-center justify-center gap-3">
-          <Link href="#tools" className="inline-flex h-11 items-center rounded-full bg-primary text-white px-6 text-sm font-medium hover:opacity-90">Explore Tools</Link>
+          <Link href="#tools" className="inline-flex h-11 items-center rounded-full btn-primary-gradient px-6 text-sm font-medium">Explore Tools</Link>
           <Link href="#how" className="inline-flex h-11 items-center rounded-full border px-6 text-sm font-medium hover:bg-muted">How it works</Link>
           <Tooltip.Provider>
             <Tooltip.Root>

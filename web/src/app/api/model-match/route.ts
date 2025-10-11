@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     const goal = (body?.goal as string) || (body?.text as string) || '';
     if (!goal) return new Response('Missing goal', { status: 400 });
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_OPENAI_KEY;
     if (!apiKey) return new Response('Server not configured', { status: 500 });
 
     const list = ALLOWED_MODELS.map((m) => `- id: ${m.id}\n  name: ${m.name}\n  strengths: ${m.strengths.join(', ')}`).join('\n');
@@ -84,16 +84,14 @@ export async function POST(req: Request) {
       `Allowed models:\n${list}`,
     ].join('\n');
 
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
-        'X-Title': 'ToolfinityAI',
       },
       body: JSON.stringify({
-        model: 'x-ai/grok-4-fast:free',
+        model: process.env.OPENAI_TEXT_MODEL || 'gpt-4o-mini',
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: `User goal: ${goal}` },
@@ -103,13 +101,14 @@ export async function POST(req: Request) {
     });
 
     if (!res.ok) {
-      const errText = await res.text().catch(() => 'OpenRouter error');
+      const errText = await res.text().catch(() => 'OpenAI error');
       return new Response(errText, { status: res.status });
     }
 
     const data = await res.json();
     const content: string = data?.choices?.[0]?.message?.content ?? '';
-    let parsed: any = null;
+    type ModelSelection = { modelId: string; modelName: string; summary: string };
+    let parsed: Partial<ModelSelection> | null = null;
     try {
       parsed = JSON.parse(content);
     } catch {
@@ -119,11 +118,11 @@ export async function POST(req: Request) {
       }
     }
     if (!parsed || !parsed.modelId || !parsed.modelName || !parsed.summary) {
-      // Fallback: default to Grok 4 Fast with a generic rationale
+      // Fallback: default to GPT-4o mini with a generic rationale
       parsed = {
-        modelId: 'x-ai/grok-4-fast:free',
-        modelName: 'Grok 4 Fast (free)',
-        summary: 'General-purpose model with large context and good reasoning; suitable default for a wide range of tasks.',
+        modelId: 'openai/gpt-4o-mini',
+        modelName: 'GPT-4o mini',
+        summary: 'General-purpose, cost-efficient OpenAI model with strong quality-speed balance.',
       };
     }
     return Response.json(parsed);
