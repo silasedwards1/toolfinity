@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 
+export type ToolStatus = 'unstarted' | 'unfinished' | 'ready';
+
 export type Tool = {
   id: string;
   name: string;
@@ -8,19 +10,43 @@ export type Tool = {
   href: string;
   category: 'Image' | 'Video' | 'Text' | 'Music' | 'Code' | 'Utility';
   icon?: React.ReactNode;
+  status?: ToolStatus; // unstarted -> red, unfinished -> yellow, ready -> no badge
 };
+
+function renderStatusBadge(status?: ToolStatus) {
+  if (!status || status === 'ready') return null;
+
+  const isUnstarted = status === 'unstarted';
+  const label = isUnstarted ? 'Unstarted' : 'In progress';
+  const cls = isUnstarted
+    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${cls}`}
+      aria-label={`Status: ${label}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${isUnstarted ? 'bg-red-600 dark:bg-red-400' : 'bg-yellow-500 dark:bg-yellow-300'}`} />
+      {label}
+    </span>
+  );
+}
 
 export default function ToolCard({ tool }: { tool: Tool }) {
   return (
     <div className="group rounded-2xl border bg-card p-5 hover:shadow-sm transition-shadow">
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center" aria-hidden>
-          {tool.icon ?? <span className="text-xs">{tool.category}</span>}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center" aria-hidden>
+            {tool.icon ?? <span className="text-xs">{tool.category}</span>}
+          </div>
+          <div>
+            <h3 className="font-semibold">{tool.name}</h3>
+            <p className="text-sm text-foreground/70 line-clamp-2">{tool.description}</p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-semibold">{tool.name}</h3>
-          <p className="text-sm text-foreground/70 line-clamp-2">{tool.description}</p>
-        </div>
+        {renderStatusBadge(tool.status)}
       </div>
       <div className="mt-4 flex items-center justify-between">
         <span className="inline-block rounded-full bg-muted px-2 py-1 text-xs">{tool.category}</span>

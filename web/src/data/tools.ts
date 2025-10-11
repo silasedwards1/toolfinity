@@ -7,6 +7,7 @@ export const featuredTools: Tool[] = [
     description: 'Enhance and upscale images with AI while preserving details.',
     href: '/tools/image-upscaler',
     category: 'Image',
+    status: 'unstarted',
   },
   {
     id: 'video-summarizer',
@@ -14,6 +15,7 @@ export const featuredTools: Tool[] = [
     description: 'Get concise summaries of any video with timestamps.',
     href: '/tools/video-summarizer',
     category: 'Video',
+    status: 'unstarted',
   },
   {
     id: 'text-paraphraser',
@@ -21,6 +23,7 @@ export const featuredTools: Tool[] = [
     description: 'Rewrite sentences and paragraphs in your style.',
     href: '/tools/text-paraphraser',
     category: 'Text',
+    status: 'unfinished',
   },
   {
     id: 'code-explainer',
@@ -28,6 +31,7 @@ export const featuredTools: Tool[] = [
     description: 'Paste code and get clear explanations and improvements.',
     href: '/tools/code-explainer',
     category: 'Code',
+    status: 'unstarted',
   },
   {
     id: 'music-tag-cleaner',
@@ -35,6 +39,7 @@ export const featuredTools: Tool[] = [
     description: 'Fix and normalize audio metadata in seconds.',
     href: '/tools/music-tag-cleaner',
     category: 'Music',
+    status: 'unstarted',
   },
   {
     id: 'video-watermark-remover',
@@ -42,6 +47,7 @@ export const featuredTools: Tool[] = [
     description: 'Smartly remove corner/logo watermarks using FFmpeg delogo. Free.',
     href: '/tools/video-watermark-remover',
     category: 'Video',
+    status: 'ready',
   },
   {
     id: 'video-watermark-auto',
@@ -49,6 +55,7 @@ export const featuredTools: Tool[] = [
     description: 'Upload once. We detect persistent overlays and remove them across the video.',
     href: '/tools/video-watermark-auto',
     category: 'Video',
+    status: 'unfinished',
   },
   {
     id: 'model-matchmaker',
@@ -56,6 +63,7 @@ export const featuredTools: Tool[] = [
     description: 'Describe your task; we pick the best AI model and explain why.',
     href: '/tools/model-matchmaker',
     category: 'Utility',
+    status: 'unfinished',
   },
 ];
 
