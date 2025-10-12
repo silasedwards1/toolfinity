@@ -5,7 +5,12 @@ import Link from 'next/link';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { Infinity as InfinityIcon } from 'lucide-react';
 
-export default function Hero() {
+type HeroProps = {
+  selectedCategory: string | null;
+  onCategoryChange: (category: string | null) => void;
+};
+
+export default function Hero({ selectedCategory, onCategoryChange }: HeroProps) {
   return (
     <section className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -44,9 +49,26 @@ export default function Hero() {
 
         <div className="mt-12 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 opacity-90">
           {['Image', 'Video', 'Text', 'Music', 'Code'].map((label) => (
-            <div key={label} className="rounded-xl border bg-card p-4 text-sm font-medium">
+            <button
+              key={label}
+              onClick={() => {
+                // Toggle: if clicking the same category, deselect it
+                if (selectedCategory === label) {
+                  onCategoryChange(null);
+                } else {
+                  onCategoryChange(label);
+                  // Scroll to tools section
+                  document.getElementById('tools')?.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className={`rounded-xl border p-4 text-sm font-medium transition-all cursor-pointer ${
+                selectedCategory === label
+                  ? 'bg-primary text-white border-primary shadow-md scale-105'
+                  : 'bg-card hover:bg-muted hover:scale-105'
+              }`}
+            >
               {label}
-            </div>
+            </button>
           ))}
         </div>
       </div>
