@@ -13,6 +13,11 @@ function buildSystemPrompt() {
 
 export async function POST(req: Request) {
   try {
+    // Rate limit: default points/interval, override via env
+    const { applyRateLimit } = await import('@/lib/rateLimit');
+    const limited = applyRateLimit(req, { routeName: 'email-tone', points: 10, intervalMs: 43_200_000 });
+    if (limited) return limited;
+
     const body = await req.json().catch(() => ({}));
     const email = (body?.text as string) || (body?.email as string) || '';
     if (!email || typeof email !== 'string') {

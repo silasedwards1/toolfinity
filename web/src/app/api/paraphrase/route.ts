@@ -3,6 +3,10 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
+    const { applyRateLimit } = await import('@/lib/rateLimit');
+    const limited = applyRateLimit(req, { routeName: 'paraphrase', points: 10, intervalMs: 43_200_000 });
+    if (limited) return limited;
+
     const { text, tone = 'neutral' } = await req.json();
     if (!text || typeof text !== 'string') return new Response('Missing text', { status: 400 });
     const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_OPENAI_KEY;

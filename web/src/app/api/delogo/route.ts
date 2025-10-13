@@ -16,6 +16,10 @@ export const maxDuration = 60; // vercel serverless safeguard
 
 export async function POST(req: NextRequest) {
   try {
+    const { applyRateLimit } = await import('@/lib/rateLimit');
+    const limited = applyRateLimit(req as unknown as Request, { routeName: 'delogo', points: 6, intervalMs: 60_000 });
+    if (limited) return limited;
+
     // Resolve ffmpeg binary path on each request in dev to avoid stale .next paths
     try {
       const stat = await fs.stat(ffmpegPath as string).catch(() => null);
