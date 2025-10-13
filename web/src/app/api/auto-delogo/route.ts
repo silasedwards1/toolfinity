@@ -24,6 +24,10 @@ function setFfmpegPath() {
 
 export async function POST(req: NextRequest) {
   try {
+    const { applyRateLimit } = await import('@/lib/rateLimit');
+    const limited = applyRateLimit(req as unknown as Request, { routeName: 'auto-delogo', points: 3, intervalMs: 60_000 });
+    if (limited) return limited;
+
     setFfmpegPath();
 
     const contentType = req.headers.get('content-type') || '';

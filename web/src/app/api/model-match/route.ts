@@ -67,6 +67,10 @@ const ALLOWED_MODELS: AllowedModel[] = [
 
 export async function POST(req: Request) {
   try {
+    const { applyRateLimit } = await import('@/lib/rateLimit');
+    const limited = applyRateLimit(req, { routeName: 'model-match', points: 10, intervalMs: 43_200_000 });
+    if (limited) return limited;
+
     const body = await req.json().catch(() => ({}));
     const goal = (body?.goal as string) || (body?.text as string) || '';
     if (!goal) return new Response('Missing goal', { status: 400 });
