@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { DarkModeToggle } from './DarkModeToggle';
 
 export default function Header() {
   return (
@@ -20,8 +19,8 @@ export default function Header() {
           <span className="text-lg font-semibold glossy-silver-text">Toolfinity</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm">
-          <Link className="hover:underline underline-offset-4" href="#">Home</Link>
-          <Link className="hover:underline underline-offset-4" href="#tools">Tools</Link>
+          <Link className="hover:underline underline-offset-4" href="/">Home</Link>
+          <Link className="hover:underline underline-offset-4" href="/tools">Tools</Link>
           <Link className="hover:underline underline-offset-4" href="#about">About</Link>
           <Link className="hover:underline underline-offset-4" href="#faq">FAQ</Link>
           <Link className="hover:underline underline-offset-4" href="#blog">Blog</Link>
@@ -30,7 +29,6 @@ export default function Header() {
         <div className="flex items-center gap-2">
           <Link href="#signup" className="hidden sm:inline-flex h-9 items-center rounded-full border px-4 text-sm hover:bg-muted">Sign Up</Link>
           <Link href="#login" className="hidden sm:inline-flex h-9 items-center rounded-full border px-4 text-sm hover:bg-muted">Log In</Link>
-          <DarkModeToggle />
         </div>
       </div>
     </header>
