@@ -27,14 +27,24 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
 
   const items = filteredTools;
   const [clonesCount, setClonesCount] = useState<number>(1);
+  // Ensure at least 3 so we can always normalize into the middle copy
+  const [repeats, setRepeats] = useState<number>(3);
   const leadingClones = useMemo(() => items.slice(-clonesCount), [items, clonesCount]);
   const trailingClones = useMemo(() => items.slice(0, clonesCount), [items, clonesCount]);
-  const fullList = useMemo(() => [...leadingClones, ...items, ...trailingClones], [leadingClones, items, trailingClones]);
+  const repeatedItems = useMemo(() => {
+    if (items.length === 0) return [] as typeof items;
+    return Array.from({ length: Math.max(2, repeats) }, () => items).flat();
+  }, [items, repeats]);
+  const fullList = useMemo(() => [...leadingClones, ...repeatedItems, ...trailingClones], [leadingClones, repeatedItems, trailingClones]);
 
   const indexRef = useRef<number>(clonesCount); // start on first real slide
   const slideWidthRef = useRef<number>(0);
   const gapPx = 16; // matches gap-4
   const programmaticScrollRef = useRef<boolean>(false);
+  // startOffset: left of the FIRST real item in the list (after leading clones)
+  // blockWidth: width of ONE full real-items cycle
+  // loopWidth: full repeated width (kept for reference, but we will normalize using blockWidth)
+  const metricsRef = useRef<{ startOffset: number; blockWidth: number; loopWidth: number }>({ startOffset: 0, blockWidth: 1, loopWidth: 0 });
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -55,25 +65,52 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       slideWidthRef.current = firstSlide.offsetWidth + gapPx;
       // Compute clones based on viewport to cover visible items + one extra buffer
       const unitWidth = Math.max(1, slideWidthRef.current);
-      const neededClones = Math.min(
-        items.length,
-        Math.max(1, Math.ceil(container.clientWidth / unitWidth) + 1)
-      );
+      const visibleCount = Math.max(1, Math.ceil(container.clientWidth / unitWidth));
+      // Ensure at least 1 clone and at most items.length
+      const neededClones = Math.min(items.length, Math.max(1, visibleCount + 1));
       if (neededClones !== clonesCount) {
         setClonesCount(neededClones);
       }
-      const startOffset = neededClones * unitWidth;
-      const endOffset = startOffset + (items.length * unitWidth);
-      if (container.scrollLeft < startOffset || container.scrollLeft > endOffset - 1) {
+      // Determine repeats so that the repeated real region is wider than viewport by at least one block width
+      const realWidth = Math.max(1, items.length * unitWidth - gapPx); // subtract trailing gap for actual block width
+      const neededRepeats = Math.max(6, Math.ceil((container.clientWidth * 4) / realWidth));
+      if (neededRepeats !== repeats) {
+        setRepeats(neededRepeats);
+      }
+      // Compute precise offsets using DOM to avoid rounding errors
+      const slides = Array.from(track.querySelectorAll('[data-slide]')) as HTMLElement[];
+      const repStartIndex = neededClones;
+      // Find the next repeat block boundary by scanning forward until the pattern restarts
+      // Fallback to neededClones + items.length if offsets are regular
+      let repNextIndex = neededClones + items.length;
+      for (let i = neededClones + 1; i < slides.length; i++) {
+        if (slides[i].dataset.slideid === slides[repStartIndex]?.dataset.slideid) {
+          repNextIndex = i;
+          break;
+        }
+      }
+      const domStart = slides[repStartIndex]?.offsetLeft ?? neededClones * unitWidth;
+      const domNext = slides[repNextIndex]?.offsetLeft ?? domStart + items.length * unitWidth;
+      const blockWidth = Math.max(1, domNext - domStart);
+      const loopWidthLocal = Math.max(blockWidth * Math.max(2, neededRepeats), blockWidth * 2);
+      metricsRef.current = { startOffset: domStart, blockWidth, loopWidth: loopWidthLocal };
+
+      const endOffset = domStart + loopWidthLocal;
+      // Normalize initial position into [startOffset, startOffset + loopWidth)
+      const norm = container.scrollLeft - domStart;
+      const wrapped = ((norm % loopWidthLocal) + loopWidthLocal) % loopWidthLocal;
+      const target = domStart + wrapped;
+      if (Math.abs(container.scrollLeft - target) > 0.1) {
         programmaticScrollRef.current = true;
-        container.scrollLeft = startOffset;
+        container.scrollLeft = target;
         programmaticScrollRef.current = false;
       }
     };
-    measure();
+    // Defer measure to after layout for accurate offsetLeft
+    requestAnimationFrame(measure);
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, [fullList.length, clonesCount, items.length]);
+  }, [items.length, clonesCount, repeats]);
 
   // Autoplay using scrollLeft with invisible resets; allow manual scroll to pause
   useEffect(() => {
@@ -83,7 +120,7 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
 
     let rafId: number | null = null;
     let lastTime = performance.now();
-    const pxPerSec = 60; // base autoplay speed
+    const pxPerSec = 30; // base autoplay speed
     let isPausedByUser = false;
     let resumeTimer: ReturnType<typeof setTimeout> | null = null;
     let lastProgrammaticScrollAt = 0; // preserved but no longer used to gate pause on scroll
@@ -93,23 +130,18 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
     const rampDurationMs = 500; // duration of ease-in after resume
 
     const unitWidth = Math.max(1, slideWidthRef.current);
-    const totalRealWidth = items.length * unitWidth;
-    const startOffset = clonesCount * unitWidth;
-    const endOffset = startOffset + totalRealWidth;
 
+    // Normalize into the MIDDLE copy based on ONE cycle width (blockWidth), not the full loop.
     const ensureLoop = () => {
-      // Wrap when entering clone zones to keep visuals smooth
-      const viewport = container.clientWidth;
-      const maxVisibleStart = endOffset - viewport; // last position where only real items are visible
-      if (container.scrollLeft > maxVisibleStart) {
+      const { startOffset, blockWidth } = metricsRef.current;
+      if (blockWidth <= 0) return;
+      const epsilon = 0.5; // protects against sub-pixel jitter
+      const norm = container.scrollLeft - startOffset;
+      const wrapped = ((norm % blockWidth) + blockWidth) % blockWidth;
+      const target = startOffset + blockWidth + wrapped;
+      if (Math.abs(container.scrollLeft - target) > epsilon) {
         programmaticScrollRef.current = true;
-        container.scrollLeft -= totalRealWidth;
-        programmaticScrollRef.current = false;
-        return;
-      }
-      if (container.scrollLeft < startOffset) {
-        programmaticScrollRef.current = true;
-        container.scrollLeft += totalRealWidth;
+        container.scrollLeft = target;
         programmaticScrollRef.current = false;
       }
     };
@@ -152,16 +184,12 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       ensureLoop();
     };
     const onWheel = () => pauseForUser();
-    const onPointerDown = () => pauseForUser();
-    const onPointerUp = () => pauseForUser();
     const onTouchStart = () => pauseForUser();
     const onTouchMove = () => pauseForUser();
     const onTouchEnd = () => pauseForUser();
 
     container.addEventListener('scroll', onScroll, { passive: true });
     container.addEventListener('wheel', onWheel, { passive: true });
-    container.addEventListener('pointerdown', onPointerDown);
-    container.addEventListener('pointerup', onPointerUp);
     container.addEventListener('touchstart', onTouchStart, { passive: true });
     container.addEventListener('touchmove', onTouchMove, { passive: true });
     container.addEventListener('touchend', onTouchEnd, { passive: true });
@@ -171,14 +199,12 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       if (rafId) cancelAnimationFrame(rafId);
       container.removeEventListener('scroll', onScroll as any);
       container.removeEventListener('wheel', onWheel as any);
-      container.removeEventListener('pointerdown', onPointerDown as any);
-      container.removeEventListener('pointerup', onPointerUp as any);
       container.removeEventListener('touchstart', onTouchStart as any);
       container.removeEventListener('touchmove', onTouchMove as any);
       container.removeEventListener('touchend', onTouchEnd as any);
       if (resumeTimer) clearTimeout(resumeTimer);
     };
-  }, [isReducedMotion, items.length, clonesCount]);
+  }, [isReducedMotion, items.length, clonesCount, repeats]);
 
   return (
     <section id="tools" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
@@ -205,8 +231,8 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
           {/* Track container (scrollable, scrollbar hidden) */}
           <div ref={containerRef} className="overflow-x-auto overflow-y-hidden no-scrollbar">
             <ul ref={trackRef} className="flex gap-4 select-none">
-              {fullList.map((tool, idx) => (
-                <li key={`${tool.id}-${idx}`} data-slide className="w-[300px] sm:w-[340px] lg:w-[380px] flex-shrink-0">
+            {fullList.map((tool, idx) => (
+              <li key={`${tool.id}-${idx}`} data-slide data-slideid={tool.id} className="w-[300px] sm:w-[340px] lg:w-[380px] flex-shrink-0">
                   <ToolCard tool={tool} />
                 </li>
               ))}
