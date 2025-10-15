@@ -41,18 +41,19 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
   const slideWidthRef = useRef<number>(0);
   const gapPx = 16; // matches gap-4
   const programmaticScrollRef = useRef<boolean>(false);
+  // --- MOBILE / INTERACTION STATE (avoid killing momentum) ---
+  const userInteractingRef = useRef(false);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const IDLE_DELAY_MS = 140;
+  // Optional override to allow autoplay even when Reduce Motion is enabled
+  const allowAutoplayWhenReduced =
+    process.env.NEXT_PUBLIC_ALLOW_AUTOPLAY_WHEN_REDUCED === 'true' ||
+    process.env.NEXT_PUBLIC_ALLOW_AUTOPLAY_WHEN_REDUCED === '1';
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || (navigator as any)?.maxTouchPoints > 0);
   // startOffset: left of the FIRST real item in the list (after leading clones)
   // blockWidth: width of ONE full real-items cycle
   // loopWidth: full repeated width (kept for reference, but we will normalize using blockWidth)
   const metricsRef = useRef<{ startOffset: number; blockWidth: number; loopWidth: number }>({ startOffset: 0, blockWidth: 1, loopWidth: 0 });
-  // --- MOBILE/A11Y CONTROLS ---
-  const allowAutoplayWhenReduced =
-    (typeof process !== 'undefined' && (process.env.NEXT_PUBLIC_ALLOW_AUTOPLAY_WHEN_REDUCED === 'true' || process.env.NEXT_PUBLIC_ALLOW_AUTOPLAY_WHEN_REDUCED === '1')) || false;
-  const isTouchDevice = typeof window !== 'undefined' && (('ontouchstart' in window) || (navigator as any)?.maxTouchPoints > 0);
-  // avoid killing iOS momentum by deferring normalization until idle
-  const userInteractingRef = useRef<boolean>(false);
-  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const IDLE_DELAY_MS = 140;
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -81,7 +82,7 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       }
       // Determine repeats so that the repeated real region is wider than viewport by at least one block width
       const realWidth = Math.max(1, items.length * unitWidth - gapPx); // subtract trailing gap for actual block width
-      // On touch devices, give extra runway so we can delay normalization until idle.
+      // Give extra runway on touch so we can delay normalization until idle.
       const minRepeats = isTouchDevice ? 5 : 3;
       const neededRepeats = Math.max(minRepeats, Math.ceil((container.clientWidth * 4) / realWidth));
       if (neededRepeats !== repeats) {
@@ -101,15 +102,14 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       }
       const domStart = slides[repStartIndex]?.offsetLeft ?? neededClones * unitWidth;
       const domNext = slides[repNextIndex]?.offsetLeft ?? domStart + items.length * unitWidth;
-      const blockWidth = Math.max(1, domNext - domStart);
-      const loopWidthLocal = Math.max(blockWidth * Math.max(2, neededRepeats), blockWidth * 2);
+      const blockWidth = Math.max(1, domNext - domStart); // precise single-cycle width
+      const loopWidthLocal = Math.max(blockWidth * Math.max(3, neededRepeats), blockWidth * 3);
       metricsRef.current = { startOffset: domStart, blockWidth, loopWidth: loopWidthLocal };
 
-      const endOffset = domStart + loopWidthLocal;
-      // Normalize initial position into [startOffset, startOffset + loopWidth)
+      // --- Initialize into the MIDDLE copy using blockWidth (prevents edge hits) ---
       const norm = container.scrollLeft - domStart;
-      const wrapped = ((norm % loopWidthLocal) + loopWidthLocal) % loopWidthLocal;
-      const target = domStart + wrapped;
+      const wrapped = ((norm % blockWidth) + blockWidth) % blockWidth;
+      const target = domStart + blockWidth + wrapped;
       if (Math.abs(container.scrollLeft - target) > 0.1) {
         programmaticScrollRef.current = true;
         container.scrollLeft = target;
@@ -126,7 +126,7 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
   useEffect(() => {
     const container = containerRef.current;
     const track = trackRef.current;
-    // Respect reduced motion unless explicitly overridden
+    // Respect Reduce Motion unless explicitly overridden
     const disableAuto = isReducedMotion && !allowAutoplayWhenReduced;
     if (!container || !track || disableAuto || items.length === 0 || slideWidthRef.current <= 0) return;
 
@@ -148,7 +148,7 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       const { startOffset, blockWidth } = metricsRef.current;
       if (blockWidth <= 0) return;
       const epsilon = 0.5; // protects against sub-pixel jitter
-      // If the user is interacting/flinging, do NOT normalize now—wait until idle.
+      // Do NOT normalize while the user is interacting/flinging.
       if (userInteractingRef.current) return;
       const norm = container.scrollLeft - startOffset;
       const wrapped = ((norm % blockWidth) + blockWidth) % blockWidth;
@@ -194,7 +194,7 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       }, 100);
     };
 
-    // --- Touch & scroll handling (preserve iOS momentum) ---
+    // --- Don’t kill momentum: never normalize during active user scrolls ---
     const markUserActive = () => {
       userInteractingRef.current = true;
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -203,7 +203,7 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       idleTimerRef.current = setTimeout(() => {
         userInteractingRef.current = false;
-        ensureLoop(); // one normalize on idle to re-center
+        ensureLoop(); // one normalize after fling settles
       }, IDLE_DELAY_MS);
     };
     const onScroll = () => {
@@ -233,7 +233,7 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       if (resumeTimer) clearTimeout(resumeTimer);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
-  }, [isReducedMotion, items.length, clonesCount, repeats]);
+  }, [isReducedMotion, allowAutoplayWhenReduced, items.length, clonesCount, repeats]);
 
   return (
     <section id="tools" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
