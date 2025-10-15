@@ -45,6 +45,14 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
   // blockWidth: width of ONE full real-items cycle
   // loopWidth: full repeated width (kept for reference, but we will normalize using blockWidth)
   const metricsRef = useRef<{ startOffset: number; blockWidth: number; loopWidth: number }>({ startOffset: 0, blockWidth: 1, loopWidth: 0 });
+  // --- MOBILE/A11Y CONTROLS ---
+  const allowAutoplayWhenReduced =
+    (typeof process !== 'undefined' && (process.env.NEXT_PUBLIC_ALLOW_AUTOPLAY_WHEN_REDUCED === 'true' || process.env.NEXT_PUBLIC_ALLOW_AUTOPLAY_WHEN_REDUCED === '1')) || false;
+  const isTouchDevice = typeof window !== 'undefined' && (('ontouchstart' in window) || (navigator as any)?.maxTouchPoints > 0);
+  // avoid killing iOS momentum by deferring normalization until idle
+  const userInteractingRef = useRef<boolean>(false);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const IDLE_DELAY_MS = 140;
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -73,7 +81,9 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       }
       // Determine repeats so that the repeated real region is wider than viewport by at least one block width
       const realWidth = Math.max(1, items.length * unitWidth - gapPx); // subtract trailing gap for actual block width
-      const neededRepeats = Math.max(6, Math.ceil((container.clientWidth * 4) / realWidth));
+      // On touch devices, give extra runway so we can delay normalization until idle.
+      const minRepeats = isTouchDevice ? 5 : 3;
+      const neededRepeats = Math.max(minRepeats, Math.ceil((container.clientWidth * 4) / realWidth));
       if (neededRepeats !== repeats) {
         setRepeats(neededRepeats);
       }
@@ -116,7 +126,9 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
   useEffect(() => {
     const container = containerRef.current;
     const track = trackRef.current;
-    if (!container || !track || isReducedMotion || items.length === 0 || slideWidthRef.current <= 0) return;
+    // Respect reduced motion unless explicitly overridden
+    const disableAuto = isReducedMotion && !allowAutoplayWhenReduced;
+    if (!container || !track || disableAuto || items.length === 0 || slideWidthRef.current <= 0) return;
 
     let rafId: number | null = null;
     let lastTime = performance.now();
@@ -136,6 +148,8 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       const { startOffset, blockWidth } = metricsRef.current;
       if (blockWidth <= 0) return;
       const epsilon = 0.5; // protects against sub-pixel jitter
+      // If the user is interacting/flinging, do NOT normalize now—wait until idle.
+      if (userInteractingRef.current) return;
       const norm = container.scrollLeft - startOffset;
       const wrapped = ((norm % blockWidth) + blockWidth) % blockWidth;
       const target = startOffset + blockWidth + wrapped;
@@ -180,13 +194,27 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       }, 100);
     };
 
-    const onScroll = () => {
-      ensureLoop();
+    // --- Touch & scroll handling (preserve iOS momentum) ---
+    const markUserActive = () => {
+      userInteractingRef.current = true;
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
-    const onWheel = () => pauseForUser();
-    const onTouchStart = () => pauseForUser();
-    const onTouchMove = () => pauseForUser();
-    const onTouchEnd = () => pauseForUser();
+    const scheduleIdleNormalize = () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = setTimeout(() => {
+        userInteractingRef.current = false;
+        ensureLoop(); // one normalize on idle to re-center
+      }, IDLE_DELAY_MS);
+    };
+    const onScroll = () => {
+      if (programmaticScrollRef.current) return; // ignore our own jump
+      markUserActive();
+      scheduleIdleNormalize();
+    };
+    const onWheel = () => { pauseForUser(); markUserActive(); scheduleIdleNormalize(); };
+    const onTouchStart = () => { pauseForUser(); markUserActive(); };
+    const onTouchMove = () => { markUserActive(); };
+    const onTouchEnd = () => { markUserActive(); scheduleIdleNormalize(); };
 
     container.addEventListener('scroll', onScroll, { passive: true });
     container.addEventListener('wheel', onWheel, { passive: true });
@@ -203,6 +231,7 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
       container.removeEventListener('touchmove', onTouchMove as any);
       container.removeEventListener('touchend', onTouchEnd as any);
       if (resumeTimer) clearTimeout(resumeTimer);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
   }, [isReducedMotion, items.length, clonesCount, repeats]);
 
