@@ -33,7 +33,7 @@ export default function Hero({ selectedCategory, onCategoryChange }: HeroProps) 
           Instant access. Zero payment. Creative power. Explore diverse AI utilities for creators, students, and professionals.
         </p>
         <div className="mt-8 flex items-center justify-center gap-3">
-          <Link href="#tools" className="inline-flex h-11 items-center rounded-full btn-primary-gradient px-6 text-sm font-medium">Explore Tools</Link>
+          <Link href="/tools" className="inline-flex h-12 items-center rounded-full btn-primary-gradient px-8 text-base md:text-lg font-semibold shadow-lg ring-2 ring-primary/30 hover:ring-primary/50 hover:shadow-xl transition-transform hover:scale-105">Explore Tools</Link>
           <Link href="#how" className="inline-flex h-11 items-center rounded-full border px-6 text-sm font-medium hover:bg-muted">How it works</Link>
           <Tooltip.Provider>
             <Tooltip.Root>
@@ -46,31 +46,7 @@ export default function Hero({ selectedCategory, onCategoryChange }: HeroProps) 
             </Tooltip.Root>
           </Tooltip.Provider>
         </div>
-
-        <div className="mt-12 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 opacity-90">
-          {['Image', 'Video', 'Text', 'Music', 'Code'].map((label) => (
-            <button
-              key={label}
-              onClick={() => {
-                // Toggle: if clicking the same category, deselect it
-                if (selectedCategory === label) {
-                  onCategoryChange(null);
-                } else {
-                  onCategoryChange(label);
-                  // Scroll to tools section
-                  document.getElementById('tools')?.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-              className={`rounded-xl border p-4 text-sm font-medium transition-all cursor-pointer ${
-                selectedCategory === label
-                  ? 'bg-primary text-white border-primary shadow-md scale-105'
-                  : 'bg-card hover:bg-muted hover:scale-105'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {/* Category buttons removed per request */}
       </div>
     </section>
   );

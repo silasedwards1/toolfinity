@@ -109,3 +109,33 @@ body {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Featured tools carousel */
+@keyframes carousel-scroll-rtl {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.carousel-autoscroll {
+  animation: carousel-scroll-rtl 30s linear infinite;
+}
+
+/* Edge fades */
+.carousel-fade-left {
+  background: linear-gradient(to left, transparent, var(--background));
+}
+.carousel-fade-right {
+  background: linear-gradient(to right, transparent, var(--background));
+}
+
+/* Improve mask visibility on both light and dark backgrounds */
+.dark .carousel-fade-left {
+  background: linear-gradient(to left, transparent, rgba(10,10,10,0.9));
+}
+.dark .carousel-fade-right {
+  background: linear-gradient(to right, transparent, rgba(10,10,10,0.9));
+}
+
+/* Hide any native scrollbar if present on hoverable containers */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
