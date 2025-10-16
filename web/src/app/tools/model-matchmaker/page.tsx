@@ -95,8 +95,8 @@ export default function ModelMatchmakerPage() {
           </div>
         </aside>
       </div>
+      <FeaturedTools selectedCategory="Utility" titleOverride="More Utility Tools" headerAlign="center" />
     </div>
-    <FeaturedTools selectedCategory="Utility" titleOverride="More Utility Tools" headerAlign="center" />
   );
 }
 
