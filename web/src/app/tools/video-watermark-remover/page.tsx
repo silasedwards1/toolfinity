@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import FeaturedTools from '@/components/FeaturedTools';
 
 type Rect = { x: number; y: number; w: number; h: number };
 
@@ -140,6 +141,7 @@ export default function VideoWatermarkRemoverPage() {
   const videoUrl = React.useMemo(() => (file ? URL.createObjectURL(file) : ''), [file]);
 
   return (
+    <>
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-2xl md:text-3xl font-semibold">Video Watermark Remover</h1>
       <p className="text-foreground/70">Select a rectangle over the watermark, then process.</p>
@@ -208,6 +210,8 @@ export default function VideoWatermarkRemoverPage() {
         </div>
       </div>
     </div>
+    <FeaturedTools selectedCategory="Video" titleOverride="Explore More Video Tools" headerAlign="center" />
+    </>
   );
 }
 

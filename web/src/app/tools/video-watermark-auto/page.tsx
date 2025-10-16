@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import FeaturedTools from '@/components/FeaturedTools';
 
 export default function AutoWatermarkRemoverPage() {
   const [file, setFile] = React.useState<File | null>(null);
@@ -38,6 +39,7 @@ export default function AutoWatermarkRemoverPage() {
   }
 
   return (
+    <>
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Automatic Video Watermark Remover</h1>
@@ -94,6 +96,8 @@ export default function AutoWatermarkRemoverPage() {
         </aside>
       </div>
     </div>
+    <FeaturedTools selectedCategory="Video" titleOverride="Explore More Video Tools" headerAlign="center" />
+    </>
   );
 }
 

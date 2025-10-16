@@ -5,9 +5,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 type FeaturedToolsProps = {
   selectedCategory: string | null;
+  titleOverride?: string;
+  headerAlign?: 'left' | 'center';
 };
 
-export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) {
+export default function FeaturedTools({ selectedCategory, titleOverride, headerAlign = 'left' }: FeaturedToolsProps) {
   const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true' || process.env.NEXT_PUBLIC_DEV_MODE === '1';
   // Filter tools based on selected category
   const filteredTools = useMemo(() => {
@@ -208,18 +210,22 @@ export default function FeaturedTools({ selectedCategory }: FeaturedToolsProps) 
 
   return (
     <section id="tools" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex items-end justify-between gap-4">
-        <div>
+      <div className={headerAlign === 'center' ? 'flex flex-col items-center gap-1' : 'flex items-end justify-between gap-4'}>
+        <div className={headerAlign === 'center' ? 'text-center' : undefined}>
           <h2 className="text-2xl md:text-3xl font-semibold">
-            {selectedCategory ? `${selectedCategory} Tools` : 'Featured Tools'}
+            {titleOverride ?? (selectedCategory ? `${selectedCategory} Tools` : 'Featured Tools')}
           </h2>
-          <p className="text-foreground/70">
-            {selectedCategory
-              ? `Explore our ${selectedCategory.toLowerCase()} tools`
-              : 'Our most popular free AI tools right now.'}
-          </p>
+          {headerAlign !== 'center' && (
+            <p className="text-foreground/70">
+              {selectedCategory
+                ? `Explore our ${selectedCategory?.toLowerCase?.()} tools`
+                : 'Our most popular free AI tools right now.'}
+            </p>
+          )}
         </div>
-        <Link href="/tools" className="hidden sm:inline-flex rounded-full border px-4 h-10 items-center hover:bg-muted text-sm">View all tools</Link>
+        {headerAlign !== 'center' && (
+          <Link href="/tools" className="hidden sm:inline-flex rounded-full border px-4 h-10 items-center hover:bg-muted text-sm">View all tools</Link>
+        )}
       </div>
 
       {items.length > 0 ? (

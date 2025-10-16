@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import FeaturedTools from '@/components/FeaturedTools';
 
 export default function ModelMatchmakerPage() {
   const [goal, setGoal] = React.useState('I want help with my trigonometry homework');
@@ -95,6 +96,7 @@ export default function ModelMatchmakerPage() {
         </aside>
       </div>
     </div>
+    <FeaturedTools selectedCategory="Utility" titleOverride="More Utility Tools" headerAlign="center" />
   );
 }
 

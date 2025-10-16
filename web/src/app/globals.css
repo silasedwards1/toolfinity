@@ -46,6 +46,21 @@ body {
   color: transparent;
 }
 
+/* Animated gradient variant for text */
+@keyframes gradient-pan {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.gradient-text-animated {
+  background: linear-gradient(90deg, var(--brand-start), var(--brand-end), var(--brand-start));
+  background-size: 150% 150%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 12s ease-in-out infinite;
+}
+
 /* Primary CTA gradient button */
 .btn-primary-gradient {
   background: linear-gradient(90deg, var(--brand-start), var(--brand-end));
@@ -53,6 +68,16 @@ body {
 }
 .btn-primary-gradient:hover {
   filter: brightness(0.95);
+}
+
+/* Shiny sweep + subtle glow for primary CTA */
+/* Subtle, non-animated glow for primary CTA */
+.btn-soft-glow {
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18), 0 2px 8px rgba(34, 211, 238, 0.12);
+  transition: box-shadow 300ms ease, transform 200ms ease;
+}
+.btn-soft-glow:hover {
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.22), 0 4px 12px rgba(34, 211, 238, 0.16);
 }
 
 /* Animated infinity visual */

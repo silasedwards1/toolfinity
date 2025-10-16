@@ -4,11 +4,12 @@ import * as React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Disclosure, DisclosureButton } from '@headlessui/react';
 import { MinusSmallIcon, PlusSmallIcon } from '@heroicons/react/24/outline';
+import FeaturedTools from '@/components/FeaturedTools';
 
 type ToneResult = { tone: string; summary: string; suggestions: string[] };
 
 export default function EmailToneCheckerPage() {
-  const [input, setInput] = React.useState('Paste your email here.');
+  const [input, setInput] = React.useState('');
   const [result, setResult] = React.useState<ToneResult | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string>('');
@@ -95,33 +96,29 @@ export default function EmailToneCheckerPage() {
 
   const faqs = [
     {
-      question: 'Is this email tone checker free to use?',
-      answer:
-        'Yes. It uses the server\'s OpenAI API key. There are no logins on this page.',
+      question: 'Is the email tone checker free?',
+      answer: 'Yes, you can use it for free without creating an account.',
     },
     {
-      question: 'Does my email stay private?',
-      answer:
-        'Your input is sent securely to OpenAI through the server key to analyze tone. We do not store your email content server-side.',
+      question: 'Do you store my email content?',
+      answer: 'No. Inputs are processed to generate results and are not stored server-side. Avoid pasting sensitive data.',
     },
     {
-      question: 'What does the result include?',
-      answer:
-        'You get an overall tone classification, a one-line summary, and 3–6 specific suggestions to improve clarity or professionalism.',
+      question: 'What do I get in the results?',
+      answer: 'An overall tone label, a concise summary, and several suggestions to improve clarity and professionalism.',
     },
     {
-      question: 'Will it rewrite my email?',
-      answer:
-        'This tool focuses on analysis and suggestions. You can apply the tips manually or use the paraphraser tool to rewrite.',
+      question: 'Does it rewrite my email?',
+      answer: 'This tool analyzes tone and gives suggestions. For rewriting, try the Text Paraphraser tool.',
     },
     {
       question: 'Which languages are supported?',
-      answer:
-        'English works best. Other languages may work but quality can vary.',
+      answer: 'English works best. Other languages may work but quality can vary.',
     },
   ];
 
   return (
+    <>
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Email Tone Checker</h1>
@@ -135,7 +132,7 @@ export default function EmailToneCheckerPage() {
               className="mt-2 w-full min-h-40 rounded-xl border bg-background p-3 text-sm"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Paste your email here to analyze tone"
+              placeholder="Paste your text here."
             />
             <div className="mt-3 flex items-center justify-between gap-3">
               <motion.button
@@ -288,6 +285,8 @@ export default function EmailToneCheckerPage() {
           </div>
       </div>
     </div>
+    <FeaturedTools selectedCategory="Text" titleOverride="Explore More Text Tools" headerAlign="center" />
+    </>
   );
 }
 

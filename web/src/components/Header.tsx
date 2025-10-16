@@ -22,7 +22,7 @@ export default function Header() {
           <Link className="hover:underline underline-offset-4" href="/">Home</Link>
           <Link className="hover:underline underline-offset-4" href="/tools">Tools</Link>
           <Link className="hover:underline underline-offset-4" href="#about">About</Link>
-          <Link className="hover:underline underline-offset-4" href="#faq">FAQ</Link>
+          <Link className="hover:underline underline-offset-4" href="/faq">FAQ</Link>
           <Link className="hover:underline underline-offset-4" href="#blog">Blog</Link>
           <Link className="hover:underline underline-offset-4" href="#contact">Contact</Link>
         </nav>

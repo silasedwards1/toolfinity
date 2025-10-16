@@ -2,11 +2,12 @@
 
 import * as React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import FeaturedTools from '@/components/FeaturedTools';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { MinusSmallIcon, PlusSmallIcon } from '@heroicons/react/24/outline';
 
 export default function TextParaphraserPage() {
-  const [input, setInput] = React.useState('Paste or type the text you want to paraphrase.');
+  const [input, setInput] = React.useState('');
   const [output, setOutput] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [tone, setTone] = React.useState<'neutral' | 'formal' | 'casual'>('neutral');
@@ -237,6 +238,7 @@ export default function TextParaphraserPage() {
   ];
 
   return (
+    <>
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Text Paraphraser (Free, On-Device)</h1>
@@ -251,7 +253,7 @@ export default function TextParaphraserPage() {
               className="mt-2 w-full min-h-40 rounded-xl border bg-background p-3 text-sm"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Enter text to paraphrase"
+              placeholder="Paste your text here."
             />
             <div className="mt-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -379,6 +381,8 @@ export default function TextParaphraserPage() {
         </aside>
       </div>
     </div>
+    <FeaturedTools selectedCategory="Text" titleOverride="Explore More Text Tools" headerAlign="center" />
+    </>
   );
 }
 

@@ -26,6 +26,14 @@ export const featuredTools: Tool[] = [
     status: 'ready',
   },
   {
+    id: 'grammar-fixer',
+    name: 'Grammar Fixer',
+    description: 'Fix grammar/spelling and see highlighted issues with explanations.',
+    href: '/tools/grammar-fixer',
+    category: 'Text',
+    status: 'ready',
+  },
+  {
     id: 'email-tone-checker',
     name: 'Email Tone Checker',
     description: 'Analyze email tone and get suggestions to improve clarity and professionalism.',
